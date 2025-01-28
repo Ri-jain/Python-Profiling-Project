@@ -1,0 +1,288 @@
+Code: 
+
+import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
+
+
+df = pd.read_csv("Passengers_Satisfaction_Survey.csv")s
+df_Business = df[df['Class'] == 'Business']
+df_Business
+
+df_Business.shape
+df_Business.info()
+cols=df_Business.columns
+
+# Unique values in df_Business dataframe
+for col in cols:
+    print(col)
+
+    # get a list of unique values
+    unique = df_Business[col].unique()
+    print(unique, '\n*************************************\n\n')
+    
+    
+# Missing Values in each column
+df_Business.isnull().sum()
+
+# Summary statistics for the df_Business dataframe
+df_Business.describe()
+
+# Continuation of summary statistics for columns with non-numerical values
+df_Business.describe(include='object')
+
+# Frequency distribution for each column
+cols_1 = df_Business
+for col in cols_1:
+    print(col)
+    value_counts = df_Business[col].value_counts()
+    print(value_counts, '\n\n=======================================================')
+    
+# Duplicated rows in df_Business dataframe
+df_Business.duplicated().sum()
+
+#Data issues
+
+# Incorrectly Imputed Values: Several columns contain misspelled or misinterpreted versions of the values they are 
+# intended to represent, causing these incorrect values to be treated as distinct categories.
+
+# Missing Values: All columns (with the exception of the subset-defining column "Class") contain missing entries.
+
+# Lack of Organization: Some variables lack a defined order or organization, impacting the interpretability of summary 
+# statistics and visualizations.
+
+# Duplicate Records: The dataset contains duplicated survey responses, resulting in redundant rows and skewed values 
+# across all columns.
+
+# Outliers: Certain columns contain outliers that fall outside the expected interquartile range, potentially due to 
+# incorrectly submitted responses.
+
+# Mixed Representations of Unknowns: Some columns contain both missing values and the categorical entry "Unknown," 
+# leading to inconsistent handling of unknown values.
+
+# Inconsistent Data Types: Data types within columns are inconsistent, with some columns misclassified, affecting the 
+# accuracy of data processing and analysis.
+
+
+# Dropthe'Class'column
+df_Business.drop(['Class'], axis=1, inplace=True)
+
+# Rename all upper case columns to lower case and fill white space with underscore
+df_Business.rename(columns = lambda x: x.lower().replace(' ', '_'), inplace = True)
+
+# Modify improperly formatted data and bad data
+df_Business['gender'] = df_Business['gender'].replace({'M': 'Male', 'F': 'Female','Fe male': 'Female'})
+df_Business['customer_type'] = df_Business['customer_type'].replace({'disloyal': 'Disloyal Customer','Loyal':'Loyal Customer'})
+df_Business['type_of_travel'] = df_Business['type_of_travel'].replace({'Business': 'Business travel'})
+df_Business['satisfaction'] = df_Business['satisfaction'].replace({'satisfied':'Satisfied','dissatisfied':'Dissatisfied','1':'Satisfied','0':'Dissatisfied','neutral':'Neutral'})
+df_Business['arrival_delay_in_minutes'] = df_Business['arrival_delay_in_minutes'].replace({'9..': 9, 'Three': 3})
+
+# Remove outliers
+df_Business = df_Business[~df_Business['arrival_delay_in_minutes'].isin(['-45', '-45.0', -45.0, -45 ])] 
+df_Business = df_Business[df_Business['departure_delay_in_minutes'] != -2.0]
+df_Business = df_Business[~df_Business['age'].isin([180.0, 185.0])] 
+df_Business = df_Business[~df_Business['flight_distance'].isin([9000000.0,-5421.0,2820000.0])]
+
+# Replace missing values with "unknown' value
+df_Business['gender'].fillna('unknown',inplace=True)
+df_Business['customer_type'].fillna('unknown',inplace=True)
+df_Business['age'].fillna('unknown',inplace=True)
+df_Business['type_of_travel'].fillna('unknown',inplace=True)
+df_Business['flight_distance'].fillna('unknown',inplace=True)
+df_Business['inflight_wifi_service'].fillna('unknown',inplace=True)
+df_Business['departure/arrival_time_convenient'].fillna('unknown',inplace=True)
+df_Business['ease_of_online_booking'].fillna('unknown',inplace=True)
+df_Business['food_and_drink'].fillna('unknown',inplace=True)
+df_Business['inflight_entertainment'].fillna('unknown',inplace=True)
+df_Business['baggage_handling'].fillna('unknown',inplace=True)
+df_Business['cleanliness'].fillna('unknown',inplace=True)
+df_Business['departure_delay_in_minutes'].fillna('unknown',inplace=True)
+df_Business['arrival_delay_in_minutes'].fillna('unknown',inplace=True)
+df_Business['satisfaction'].fillna('unknown',inplace=True)
+
+# Handle missing values by imputing mode or mean for 'unknown'. Calculate first, then impute
+mode_1 = df_Business['gender'].mode()[0]
+mode_1
+
+df_Business['gender'] = df_Business['gender'].replace({'unknown': mode_1})
+df_Business['gender'].unique()
+
+mode_2 = df_Business['customer_type'].mode()[0]
+mode_2
+
+df_Business['customer_type'] = df_Business['customer_type'].replace({'unknown': mode_2})
+df_Business = df_Business[df_Business['customer_type'] != 'Female']
+df_Business['customer_type'].unique()
+
+df_Business['age'] = pd.to_numeric(df_Business['age'], errors='coerce')
+mode_3= df_Business['age'].mode()[0]
+mode_3
+
+
+df_Business['age']=df_Business['age'].replace({'unknown': mode_3})
+df_Business['age'] = df_Business['age'].fillna(mode_3)
+df_Business['age'].unique()
+
+# As mode was unknown, 'unknown' values imputed with mean instead
+df_Business['flight_distance'] = pd.to_numeric(df_Business['flight_distance'], errors='coerce')
+mean_4 = df_Business['flight_distance'].mean().round()
+mean_4
+
+df_Business['flight_distance']=df_Business['flight_distance'].replace({'unknown':mean_4})
+df_Business['flight_distance'].unique()
+
+mode_5 = df_Business['type_of_travel'].mode()[0]
+mode_5
+
+df_Business['type_of_travel']=df_Business['type_of_travel'].replace({ 'unknown':mode_5})
+df_Business['type_of_travel'].unique()
+
+mode_6= df_Business['inflight_wifi_service'].mode()[0]
+mode_6
+
+df_Business['inflight_wifi_service'] =df_Business['inflight_wifi_service'].replace({'unknown':mode_6})
+df_Business['inflight_wifi_service'].value_counts().sort_index(ascending=True)
+
+mode_7 = df_Business['departure/arrival_time_convenient'].mode()[0]
+mode_7
+
+df_Business['departure/arrival_time_convenient']= df_Business['departure/arrival_time_convenient'].replace({'unknown':mode_7})
+df_Business['departure/arrival_time_convenient'].value_counts().sort_index(ascending=True)
+
+mode_8 = df_Business['ease_of_online_booking'].mode()[0]
+mode_8
+
+df_Business['ease_of_online_booking']= df_Business['ease_of_online_booking'].replace({'unknown':mode_8, 'Unknown':mode_8})
+df_Business['ease_of_online_booking'].value_counts().sort_index(ascending=True)
+
+mode_9= df_Business['food_and_drink'].mode()[0]
+mode_9
+
+df_Business['food_and_drink'] =df_Business['food_and_drink'].replace({'unknown':mode_9})
+df_Business['food_and_drink'] =df_Business['food_and_drink'].replace({'Great':mode_9})
+df_Business['food_and_drink'].value_counts().sort_index(ascending=True)
+
+mode_10 = df_Business['baggage_handling'].mode()[0]
+mode_10
+
+df_Business['baggage_handling'] = df_Business['baggage_handling'].replace({'unknown':mode_10})
+df_Business['baggage_handling'] = df_Business['baggage_handling'].replace({'A':mode_10})
+df_Business['baggage_handling'].value_counts().sort_index(ascending=True)
+
+
+mode_11= df_Business['cleanliness'].mode()[0]
+mode_11
+
+df_Business['cleanliness']= df_Business['cleanliness'].replace({'unknown':mode_11})
+df_Business['cleanliness'].value_counts().sort_index(ascending=True)
+
+df_Business['departure_delay_in_minutes'].unique()
+mode_12= df_Business['departure_delay_in_minutes'].mode()[0]
+mode_12
+
+df_Business['departure_delay_in_minutes']=df_Business['departure_delay_in_minutes'].replace({'unknown':mode_12})
+df_Business['departure_delay_in_minutes'].value_counts().sort_index(ascending=True)
+
+mode_13= df_Business['arrival_delay_in_minutes'].mode()[0]
+mode_13
+
+df_Business['arrival_delay_in_minutes']= df_Business['arrival_delay_in_minutes'].replace({'unknown':mode_13})
+df_Business['arrival_delay_in_minutes'] = pd.to_numeric(df_Business['arrival_delay_in_minutes'], errors='coerce')
+df_Business['arrival_delay_in_minutes'].value_counts().sort_index(ascending=True)
+
+mode_14= df_Business['satisfaction'].mode()[0]
+mode_14
+
+df_Business['satisfaction']= df_Business['satisfaction'].replace({ 'unknown' : mode_14 })
+df_Business['satisfaction'].unique()
+
+mode_15= df_Business['inflight_entertainment'].mode()[0]
+mode_15
+
+df_Business['inflight_entertainment'] = df_Business['inflight_entertainment'].replace({'unknown':mode_15})
+df_Business['inflight_entertainment'] = df_Business['inflight_entertainment'].replace({ 10 : 5})
+df_Business['inflight_entertainment'].value_counts().sort_index(ascending=True)
+
+# Drop duplicate observations
+df_Business.drop_duplicates(inplace=True)
+
+# Confirm duplicate observations dropped
+df_Business.duplicated().sum()
+
+# Fix column datatypes
+df_Business['age'] = df_Business['age'].astype("Int64")
+df_Business['flight_distance']= df_Business['flight_distance'].astype("Int64")
+df_Business['inflight_wifi_service']= df_Business['inflight_wifi_service'].astype("Int64")
+df_Business['departure/arrival_time_convenient'] = df_Business['departure/arrival_time_convenient'].astype("Int64")
+df_Business['ease_of_online_booking']= df_Business['ease_of_online_booking'].astype("Int64")
+df_Business['food_and_drink']= df_Business['food_and_drink'].astype("Int64")
+df_Business['inflight_entertainment']= df_Business['inflight_entertainment'].astype("Int64")
+df_Business['baggage_handling'] = df_Business['baggage_handling'].astype("Int64")
+df_Business['cleanliness'] = df_Business['cleanliness'].astype("Int64")
+df_Business['departure_delay_in_minutes']= df_Business['departure_delay_in_minutes'].astype("Int64")
+df_Business['arrival_delay_in_minutes'] = df_Business['arrival_delay_in_minutes'].astype("Int64")
+
+# Confirm data types have been fixed
+df_Business.info()
+
+# Final overview of all obversations in columns
+cols_2 = df_Business
+for col in cols_1:
+    print(col)
+    value_counts = df_Business[col].value_counts().sort_index(ascending=True)
+    print(value_counts, '\n\n=======================================================')
+    
+# Reset index
+df_Business.reset_index()
+
+# Column Characteristics Comparison Write-Up:
+
+## Before:
+# Gender - Datatype object, four unique values ('Male', 'Female', 'M', 'F', 'Fe male'), 1761 missing values.
+# Customer Type - Datatype object, five unqiue values ('Loyal Customer', 'Disloyal Customer', 'disloyal', 'Loyal'), 1761 missing values.
+# Age - Datatype float64, 74 unique values, two outliers (180.0, 185.0), 2627 missing values.
+# Type of Travel - Datatype object, three unique values ('Personal Travel', 'Business Travel', 'Business') 1761 missing vlaues.
+# Class - Datatype object, one unique value ('Business'), no missing values.
+# Flight Distance - Datatype float64, 3574 unique values, three outliers ('9000000.0', '-5421', '2820000.0'), 3396 missing values.
+
+## Survey Questions:
+## Each survey question contains six unique values ('0', '1', '2', '3', '4', '5')
+# Inflight Wifi Service - Datatype float64, 1761 missing values.
+# Departure/Arrival Time Convenient - Datatype float64, 1761 missing values.
+# Ease of Online Booking - Datatype object, 7925 missing values, one additional unqiue value ('Unknown').
+# Food and Drink - Datatype object, 7295 missing values, one additional unique value ('Great').
+# Inflight Entertainment - Datatype float64, 6351 missing values, one additional unqiue value ('10').
+# Baggage Handling - Datatype object, 6351 missing values, one additional unqiue value ('A').
+# Cleanliness - Datatype float64, 6351 missing values, no responses for ('1').
+
+# Departue Delay in Minutes - Datatype float64, 6351 missing values, one outlier ('-2').
+# Arrival Delay in Minutes - Datatype object, 7902 missing values, two outliers ('-45', '-45.0').
+# Satisfaction - Datatype object, 2160 missing values, six unique values ('satisfied', 'Dissatisfied', 'dissatisfied', '0', '1', 'neutral'). 
+
+
+
+## After:
+## Standardized missing values with 'unknown' and replaced with mean/mode.
+# gender - Datatype object, two unique values ('Male', 'Female'), 0 missing values.
+# customer_type - Datatype object, two unique values  ('Loyal Customer', 'Disloyal Customer'), 0 missing values.
+# age - Datatype Int64, 72 unique values, eliminated two outliers, 0 missing values.
+# type_of_travel - Datatype object, two unique values ('Business Travel', 'Personal Travel'), 0 missing values
+# flight_distance - Datatype Int64, 3564 unique values, eliminated three outliers, 0 missing values
+
+## Survey Questions:
+## Ordered in ascending order. Standardized missing values with 'unknown' and replaced with mean/mode.
+# inflight_wifi_service - Datatype Int64, 0 missing values.
+# departure/arrival_time_convenient - Datatype Int64, 0 missing values.
+# ease_of_online_booking - Datatype Int64, imputed unknown values with mode, 0 missing values.
+# food_and_drink - Datatype Int64, substituted 'Great' with mode as mode was '4', 0 missing values.
+# inflight_entertainment - Datatype Int64, substituted '10' with '5' as '10' was hypothesized to be a falsely imputed answer representing 
+# the top score on a 10-intger scale vs our 5-integer one, as, 0 missing values.
+# baggage_handling - Datatype Int64, imputed 'A' with mode as mode was 4, 0 missing values.
+# cleanliness - Datatype Int64, 0 missing values.
+
+# departure_delay_in_minutes - Datatype Int64,  eleminated one outlier, 0 missing values.
+# arrival_delay_in_minutes - Datatype Int64,  eliminated two outliers, 0 missing values.
+# satisfaction - Datatype object,  two unqiue values ('Satisfied', 'Dissatisfied'), replaced '0' and '1' with 'Satisfied', 'Dissatisfied' 
+# with respectively, 0 missing values.
+
+df_Business.to_csv('Project_2_Group7.csv', index=True)
