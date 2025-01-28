@@ -1,4 +1,4 @@
-# Python-Profiling-Project
+# Airline Passenger Survey -Profiling-Project
 
 Project Description:
 This project places you in an engagement with an airline client preparing and cleaning passenger satisfaction survey data to identify critical factors for improving service. The focus is on applying the process of preparing data for analysis by removing or modifying data that is missing, inaccurate, duplicated, or improperly formatted using Python.
